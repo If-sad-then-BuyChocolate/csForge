@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CSForge</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0b0d'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%2300d4ff'>C</text></svg>" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0b0d;--surface:#111317;--surface2:#181b20;--surface3:#1e2128;
+  --border:#2a2d35;--border2:#363a44;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;--accent4:#f59e0b;--red:#ef4444;
+  --text:#e8eaf0;--text2:#8b9099;--text3:#555b66;
+  --mono:'JetBrains Mono',monospace;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);overflow:hidden}
+#root{height:100vh}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:260px 1fr;grid-template-rows:52px 1fr;height:100vh;overflow:hidden}
+.topbar{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px}
+.logo{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-0.5px;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px var(--accent)}
+.logo span{color:var(--accent)}
+.tab-btn{background:none;border:none;color:var(--text2);font-family:var(--mono);font-size:12px;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all .15s;letter-spacing:.5px}
+.tab-btn:hover{color:var(--text);background:var(--surface3)}
+.tab-btn.active{color:var(--accent);background:rgba(0,212,255,.08)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:11px}
+.status-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;font-size:10px;border:1px solid}
+.status-pill.online{background:rgba(16,185,129,.1);color:var(--accent3);border-color:rgba(16,185,129,.3)}
+.status-pill.offline{background:var(--surface3);color:var(--text3);border-color:var(--border)}
+.pulse{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pulse.animate{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-section{padding:10px 12px;border-bottom:1px solid var(--border)}
+.sb-label{font-size:10px;letter-spacing:2px;color:var(--text3);font-weight:500;text-transform:uppercase;padding:10px 14px 6px}
+.path-row{display:flex;gap:6px;align-items:center}
+.path-input{flex:1;background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:4px;outline:none}
+.path-input:focus{border-color:var(--accent)}
+.browse-btn{background:var(--surface3);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.browse-btn:hover{color:var(--text);border-color:var(--accent)}
+.scan-btn{width:100%;margin-top:8px;background:var(--accent2);border:none;color:#fff;font-family:var(--mono);font-size:12px;font-weight:500;padding:8px;border-radius:4px;cursor:pointer;transition:all .15s;letter-spacing:.5px}
+.scan-btn:hover{filter:brightness(1.2)}
+.scan-btn:disabled{opacity:.5;cursor:not-allowed}
+.scan-btn.loading{animation:scanPulse 1s infinite}
+@keyframes scanPulse{0%,100%{opacity:1}50%{opacity:.6}}
+.entity-tree{flex:1;overflow-y:auto;padding:4px 0}
+.entity-tree::-webkit-scrollbar{width:4px}
+.entity-tree::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.entity-item{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .1s;border-left:2px solid transparent}
+.entity-item:hover{color:var(--text);background:var(--surface2)}
+.entity-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,212,255,.05)}
+.entity-remove{display:none;margin-left:4px;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;line-height:1;padding:0 2px;border-radius:2px;opacity:.7}
+.entity-item:hover .entity-remove{display:inline-block}
+.entity-remove:hover{opacity:1;background:rgba(239,68,68,.12)}
+.entity-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.entity-item.active .entity-dot{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.entity-live-dot{width:5px;height:5px;border-radius:50%;background:var(--accent3);box-shadow:0 0 5px var(--accent3);animation:pulse 2s infinite;margin-left:auto}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.panel{flex:1;overflow-y:auto;padding:24px}
+.panel::-webkit-scrollbar{width:4px}
+.panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.panel-title{font-family:var(--display);font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-.5px}
+.panel-sub{font-size:12px;color:var(--text3);margin-bottom:24px}
+.section-title{font-family:var(--display);font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* MODEL CARD */
+.model-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;transition:border-color .2s}
+.model-card:hover{border-color:var(--border2)}
+.mc-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.mc-name{font-family:var(--display);font-size:16px;font-weight:700}
+.mc-file{font-size:10px;color:var(--text3)}
+.mc-actions{display:flex;gap:6px;margin-left:auto}
+.btn{font-family:var(--mono);font-size:11px;padding:5px 11px;border-radius:4px;cursor:pointer;border:1px solid;transition:all .15s;font-weight:500;white-space:nowrap}
+.btn-blue{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.05)}
+.btn-blue:hover{background:rgba(0,212,255,.15)}
+.btn-green{border-color:var(--accent3);color:var(--accent3);background:rgba(16,185,129,.05)}
+.btn-green:hover{background:rgba(16,185,129,.15)}
+.btn-purple{border-color:var(--accent2);color:var(--accent2);background:rgba(124,58,237,.05)}
+.btn-purple:hover{background:rgba(124,58,237,.15)}
+.btn-amber{border-color:var(--accent4);color:var(--accent4);background:rgba(245,158,11,.05)}
+.btn-amber:hover{background:rgba(245,158,11,.15)}
+.btn-red{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.05)}
+.btn-red:hover{background:rgba(239,68,68,.15)}
+.btn-ghost{border-color:var(--border2);color:var(--text2);background:transparent}
+.btn-ghost:hover{background:var(--surface3);color:var(--text)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* PROPERTIES TABLE */
+.props-table{width:100%;border-collapse:collapse;font-size:12px}
+.props-table th{background:var(--surface3);color:var(--text2);padding:7px 12px;text-align:left;font-weight:500;font-size:10px;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+.props-table td{padding:6px 12px;border-bottom:1px solid var(--border);color:var(--text2);font-size:11px;vertical-align:middle}
+.props-table tr:last-child td{border-bottom:none}
+.props-table tr:hover td{background:var(--surface2)}
+.type-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;background:rgba(0,212,255,.1);color:var(--accent)}
+.null-toggle{cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 6px;border-radius:3px;border:1px solid;transition:all .15s}
+.null-toggle.nullable{background:rgba(245,158,11,.1);color:var(--accent4);border-color:rgba(245,158,11,.3)}
+.null-toggle.required{background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.3)}
+.editable-name{background:none;border:none;color:var(--text);font-family:var(--mono);font-size:11px;width:100%;cursor:text;padding:2px 4px;border-radius:2px}
+.editable-name:focus{background:var(--surface3);outline:1px solid var(--accent);color:var(--text)}
+
+/* DATA TABLE COLLAPSIBLE */
+.data-section{border-top:1px solid var(--border)}
+.data-toggle{display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;font-size:11px;color:var(--text3);user-select:none;transition:background .12s}
+.data-toggle:hover{background:var(--surface2);color:var(--text2)}
+.chevron{font-size:9px;transition:transform .2s;color:var(--text3)}
+.chevron.open{transform:rotate(90deg)}
+.data-body{overflow:hidden;transition:max-height .25s ease}
+.data-body.collapsed{max-height:0}
+.data-body.expanded{max-height:600px}
+.data-inner{padding:0 16px 14px}
+.data-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px}
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{background:var(--surface3);color:var(--text2);padding:6px 10px;text-align:left;font-size:10px;border-bottom:1px solid var(--border);white-space:nowrap}
+.data-table td{padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text2);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.data-table td:first-child{color:var(--accent3);font-weight:500}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--surface2)}
+.query-bar{background:var(--bg);border-top:1px solid var(--border);padding:7px 12px;font-size:10px;color:var(--text3);display:flex;gap:10px}
+.qsql{color:var(--accent4)}
+.qrows{margin-left:auto;color:var(--accent3)}
+
+/* ADD PROPERTY FORM */
+.add-prop-form{display:flex;gap:8px;padding:10px 16px;background:var(--surface2);border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.mini-input{background:var(--surface3);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:4px;outline:none}
+.mini-input:focus{border-color:var(--accent)}
+.mini-select{background:var(--surface3);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:4px;cursor:pointer;outline:none}
+
+/* LIVE SERVER */
+.server-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;transition:border-color .2s}
+.server-card.running{border-color:rgba(16,185,129,.4)}
+.sc-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sc-name{font-family:var(--display);font-size:16px;font-weight:700}
+.server-badge{display:flex;align-items:center;gap:5px;font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid}
+.server-badge.running{background:rgba(16,185,129,.1);color:var(--accent3);border-color:rgba(16,185,129,.3)}
+.server-badge.stopped{background:var(--surface3);color:var(--text3);border-color:var(--border)}
+.url-row{display:flex;align-items:center;gap:8px;background:var(--surface3);border:1px solid var(--border2);border-radius:5px;padding:8px 12px;font-size:12px;margin-bottom:8px}
+.url-scheme{color:var(--accent3)}
+.url-host{color:var(--text)}
+.url-path{color:var(--accent4)}
+.copy-btn{margin-left:auto;cursor:pointer;color:var(--text3);font-size:13px;transition:color .15s;background:none;border:none}
+.copy-btn:hover{color:var(--accent)}
+.spin-btn{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;padding:8px 16px;border-radius:6px;cursor:pointer;border:none;transition:all .2s;font-weight:600}
+.spin-btn.start{background:var(--accent3);color:#0a0b0d}
+.spin-btn.start:hover{filter:brightness(1.1);box-shadow:0 0 20px rgba(16,185,129,.3)}
+.spin-btn.stop{background:var(--red);color:#fff}
+.spin-btn.stop:hover{box-shadow:0 0 20px rgba(239,68,68,.3)}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed}
+.spin-icon{font-size:13px}
+.spinning{animation:spin .8s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.ep-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border-radius:4px;margin-bottom:3px;font-size:11px}
+.method{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;min-width:48px;text-align:center}
+.GET{background:rgba(16,185,129,.15);color:var(--accent3)}
+.POST{background:rgba(0,212,255,.15);color:var(--accent)}
+.PUT{background:rgba(245,158,11,.15);color:var(--accent4)}
+.DELETE{background:rgba(239,68,68,.15);color:var(--red)}
+.PATCH{background:rgba(124,58,237,.15);color:var(--accent2)}
+.ep-url{color:var(--text2);flex:1}
+.live-response{margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.lr-header{background:var(--surface3);padding:6px 12px;font-size:10px;color:var(--text2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.lr-dot{width:5px;height:5px;border-radius:50%;background:var(--accent3);animation:pulse 2s infinite}
+.lr-status{margin-left:auto;color:var(--accent4);font-size:9px}
+.lr-body{padding:10px 14px;max-height:160px;overflow-y:auto;font-size:10px;line-height:1.6;color:var(--text2)}
+
+/* INFRA */
+.pattern-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.pattern-card{background:var(--surface);border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.pattern-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pc,var(--border));transition:height .15s}
+.pattern-card:hover{border-color:var(--border2)}
+.pattern-card.active{border-color:var(--pc);background:rgba(0,0,0,.2)}
+.pattern-card.active::before{height:4px}
+.p-name{font-family:var(--display);font-size:14px;font-weight:800;margin-bottom:3px}
+.p-files{font-size:10px;color:var(--text3);margin-bottom:7px}
+.p-desc{font-size:11px;color:var(--text2);line-height:1.5}
+.p-tag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-top:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.infra-models{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:20px}
+.im-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;cursor:pointer;transition:all .15s;position:relative}
+.im-card:hover{border-color:var(--border2)}
+.im-card.sel{border-color:var(--accent2);background:rgba(124,58,237,.07)}
+.im-check{position:absolute;top:10px;right:10px;width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .15s}
+.im-card.sel .im-check{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.im-name{font-family:var(--display);font-size:13px;font-weight:700;margin-bottom:3px}
+.im-ns{font-size:10px;color:var(--text3)}
+.gen-btn{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent2),#5b21b6);border:none;color:#fff;font-family:var(--mono);font-size:13px;font-weight:700;padding:12px 28px;border-radius:8px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(124,58,237,.3);letter-spacing:.5px}
+.gen-btn:hover{filter:brightness(1.15);box-shadow:0 6px 30px rgba(124,58,237,.5);transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.code-output{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:20px}
+.code-tabs{display:flex;background:var(--surface3);border-bottom:1px solid var(--border);overflow-x:auto}
+.code-tab{padding:8px 14px;font-size:11px;cursor:pointer;color:var(--text3);white-space:nowrap;border-right:1px solid var(--border);transition:all .15s}
+.code-tab:hover{color:var(--text2)}
+.code-tab.active{color:var(--accent);background:rgba(0,212,255,.05)}
+.code-block{padding:18px;overflow-x:auto;max-height:460px;overflow-y:auto}
+.code-block pre{font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--text2);white-space:pre}
+
+/* WATCHER BAR */
+.watcher-bar{background:var(--surface2);border-top:1px solid var(--border);padding:7px 20px;display:flex;align-items:center;gap:10px;font-size:10px;color:var(--text3);overflow:hidden}
+.w-active{color:var(--accent3);display:flex;align-items:center;gap:5px}
+.w-changes{margin-left:auto;display:flex;gap:10px;overflow:hidden}
+.w-entry{color:var(--accent4);white-space:nowrap}
+
+/* EMPTY / LOADING */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;color:var(--text3);gap:12px}
+.empty-icon{font-size:48px;opacity:.3}
+.loading-dots::after{content:'';animation:dots 1.2s steps(3,end) infinite}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:11px 16px;font-size:12px;color:var(--text);z-index:9999;animation:slideIn .2s ease;max-width:320px}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;padding:2px 7px;border-radius:10px;background:var(--surface3);color:var(--text3);border:1px solid var(--border)}
+.live-badge{background:rgba(16,185,129,.1);color:var(--accent3);border-color:rgba(16,185,129,.3)}
+.db-badge{background:rgba(0,212,255,.08);color:var(--accent);border-color:rgba(0,212,255,.2)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const API = "http://localhost:7847/api";
+
+// ── API HELPERS ──────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { "Content-Type": "application/json" },
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(API + path, opts);
+    if (r.status === 204) return { success: true };
+    return r.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+const PATTERNS = [
+  { id: "repository", name: "Repository", color: "#00d4ff", tag: "Classic",
+    tagBg: "rgba(0,212,255,.15)", tagColor: "#00d4ff",
+    files: "Interface · Repo · Service · Controller · DbContext",
+    desc: "Standard Repository + Service pattern. Clean, testable, widely understood." },
+  { id: "cqrs", name: "CQRS / MediatR", color: "#7c3aed", tag: "Recommended",
+    tagBg: "rgba(124,58,237,.2)", tagColor: "#a78bfa",
+    files: "Queries · Commands · Handlers · Controller",
+    desc: "Command Query Responsibility Segregation via MediatR. Separates reads from writes." },
+  { id: "minimal", name: "Minimal API", color: "#10b981", tag: "Lightweight",
+    tagBg: "rgba(16,185,129,.15)", tagColor: "#10b981",
+    files: "Endpoint Groups · Repository · Program.cs",
+    desc: "No controllers. Lean endpoint groups wired directly in Program.cs." },
+  { id: "clean", name: "Clean Architecture", color: "#f59e0b", tag: "Enterprise",
+    tagBg: "rgba(245,158,11,.15)", tagColor: "#f59e0b",
+    files: "Domain · Application · Infrastructure · Presentation",
+    desc: "Full layered architecture with Use Cases, Domain Entities, and DI extensions." },
+];
+
+const CS_TYPES = ["string","int","long","decimal","double","float","bool",
+                   "Guid","DateTime","DateTimeOffset","DateOnly","byte","short","byte[]"];
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState("models");
+  const [entities, setEntities] = useState([]);
+  const [selectedEntity, setSelectedEntity] = useState(null);
+  const [backendOnline, setBackendOnline] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [projectPath, setProjectPath] = useState("");
+  const [expandedTables, setExpandedTables] = useState(new Set());
+  const [rows, setRows] = useState({});
+  const [liveServers, setLiveServers] = useState({});
+  const [spinningServer, setSpinningServer] = useState(null);
+  const [infraPattern, setInfraPattern] = useState("repository");
+  const [infraSelected, setInfraSelected] = useState(new Set());
+  const [infraDb, setInfraDb] = useState("sqlite");
+  const [infraFiles, setInfraFiles] = useState([]);
+  const [infraTab, setInfraTab] = useState(0);
+  const [generating, setGenerating] = useState(false);
+  const [watchLog, setWatchLog] = useState([]);
+  const [toast, setToast] = useState(null);
+  const [pendingRenames, setPendingRenames] = useState({});
+  const [savingProp, setSavingProp] = useState(null);
+  const [addPropForm, setAddPropForm] = useState({ name: "", type: "string", nullable: false });
+  const [addingProp, setAddingProp] = useState(null);
+
+  // Refs to avoid spurious re-renders from polling
+  const lastEntitiesJsonRef = useRef("");
+  const loadedRowsRef = useRef(new Set());
+  const serversLoadedRef = useRef(false);
+
+  const showToast = useCallback((msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // ── Check backend / load on mount ──
+  useEffect(() => {
+    checkBackend();
+    const interval = setInterval(checkBackend, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function checkBackend() {
+    try {
+      const r = await fetch(API + "/entities", { signal: AbortSignal.timeout(2000) });
+      if (r.ok) {
+        const data = await r.json();
+        setBackendOnline(true);
+        if (data.length > 0) {
+          // Only update entities state if data actually changed
+          const newJson = JSON.stringify(data);
+          if (newJson !== lastEntitiesJsonRef.current) {
+            lastEntitiesJsonRef.current = newJson;
+            setEntities(data);
+            setSelectedEntity(prev => prev || data[0].name);
+          }
+          // Only load rows for entities not yet loaded
+          data.forEach(e => {
+            if (!loadedRowsRef.current.has(e.name)) {
+              loadedRowsRef.current.add(e.name);
+              loadRows(e.name);
+            }
+          });
+          // Only load servers once
+          if (!serversLoadedRef.current) {
+            serversLoadedRef.current = true;
+            loadServers();
+          }
+        }
+      }
+    } catch (e) {
+      setBackendOnline(false);
+    }
+  }
+
+  // ── SSE for live updates ──
+  useEffect(() => {
+    if (!backendOnline) return;
+    const es = new EventSource(API + "/events");
+    es.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      handleSSE(msg);
+    };
+    return () => es.close();
+  }, [backendOnline]);
+
+  function handleSSE(msg) {
+    const { type, data } = msg;
+    if (!type || type === "connected" || type === "ping") return;
+
+    if (type === "scan_complete") {
+      setScanning(false);
+      // Force re-fetch by clearing cache
+      lastEntitiesJsonRef.current = "";
+      loadedRowsRef.current = new Set();
+      serversLoadedRef.current = false;
+      checkBackend();
+      showToast(`[OK] Scanned ${data.entities?.length} entities`);
+    }
+    if (type === "entity_updated") {
+      showToast(`[~] ${data.name} updated (${data.event})`);
+      setWatchLog(p => [data, ...p].slice(0, 50));
+      // Force refresh for this entity's rows
+      loadedRowsRef.current.delete(data.name);
+      lastEntitiesJsonRef.current = "";
+      checkBackend();
+    }
+    if (type === "entity_removed") {
+      showToast(`✕ ${data.name} removed`);
+      setEntities(p => p.filter(e => e.name !== data.name));
+    }
+    if (type === "property_renamed") {
+      showToast(`[OK] ${data.old_name} -> ${data.new_name}`);
+      lastEntitiesJsonRef.current = "";
+      checkBackend();
+    }
+    if (type === "property_added" || type === "property_removed" ||
+        type === "property_type_changed" || type === "property_nullable_changed") {
+      lastEntitiesJsonRef.current = "";
+      checkBackend();
+    }
+    if (type === "server_started") {
+      setLiveServers(p => ({ ...p, [data.entity]: data }));
+      showToast(`[>] ${data.entity} live at :${data.port}`);
+    }
+    if (type === "server_stopped") {
+      setLiveServers(p => { const n = { ...p }; delete n[data.entity]; return n; });
+      showToast(`[=] ${data.entity} server stopped`);
+    }
+    if (type === "reseeded") {
+      loadedRowsRef.current.delete(data.entity);
+      loadRows(data.entity);
+      showToast(`[OK] ${data.entity} reseeded (${data.rows} rows)`);
+    }
+    if (type === "row_updated" || type === "row_inserted" || type === "row_deleted") {
+      loadRows(data.entity);
+    }
+    if (type === "file_changed") {
+      setWatchLog(p => [data, ...p].slice(0, 50));
+    }
+  }
+
+  async function loadRows(entityName) {
+    const data = await api("GET", `/entities/${entityName}/rows`);
+    if (Array.isArray(data)) {
+      setRows(p => ({ ...p, [entityName]: data }));
+    }
+  }
+
+  async function loadServers() {
+    const data = await api("GET", "/servers");
+    if (data && !data.error) setLiveServers(data);
+  }
+
+  async function doBrowse() {
+    const data = await api("GET", "/browse-folder");
+    if (data.path) setProjectPath(data.path);
+  }
+
+  async function removeEntity(name) {
+    await api("DELETE", `/entities/${name}`);
+    setEntities(p => p.filter(e => e.name !== name));
+    lastEntitiesJsonRef.current = "";
+    setSelectedEntity(prev => prev === name
+      ? (entities.find(e => e.name !== name)?.name || null)
+      : prev
+    );
+    loadedRowsRef.current.delete(name);
+    showToast(`Removed ${name}`);
+  }
+
+  // ── SCAN ──
+  async function doScan() {
+    setScanning(true);
+    const path = projectPath.trim() || undefined;
+    const data = await api("POST", "/project/scan", { path });
+    if (data.error) {
+      setScanning(false);
+      showToast(`✕ ${data.error}`);
+    }
+    // Success handled via SSE
+  }
+
+  // ── PROPERTY RENAME (two-way sync) ──
+  async function submitRename(entityName, oldName, newName) {
+    if (!newName || newName === oldName) return;
+    setSavingProp(`${entityName}.${oldName}`);
+    const data = await api("POST", `/entities/${entityName}/properties/rename`,
+      { old_name: oldName, new_name: newName });
+    setSavingProp(null);
+    if (data.error) showToast(`✕ ${data.error}`);
+    else {
+      setPendingRenames(p => {
+        const n = { ...p }; delete n[`${entityName}.${oldName}`]; return n;
+      });
+    }
+  }
+
+  // ── TOGGLE NULLABLE (two-way sync) ──
+  async function toggleNullable(entityName, propName, currentNullable) {
+    setSavingProp(`${entityName}.${propName}`);
+    const data = await api("POST", `/entities/${entityName}/properties/nullable`,
+      { prop_name: propName, nullable: !currentNullable });
+    setSavingProp(null);
+    if (data.error) showToast(`✕ ${data.error}`);
+  }
+
+  // ── CHANGE TYPE (two-way sync) ──
+  async function changeType(entityName, propName, newType, nullable) {
+    setSavingProp(`${entityName}.${propName}`);
+    const data = await api("POST", `/entities/${entityName}/properties/type`,
+      { prop_name: propName, new_type: newType, nullable });
+    setSavingProp(null);
+    if (data.error) showToast(`✕ ${data.error}`);
+  }
+
+  // ── ADD PROPERTY (two-way sync) ──
+  async function addProperty(entityName) {
+    const { name, type, nullable } = addPropForm;
+    if (!name) return;
+    setAddingProp(entityName);
+    const data = await api("POST", `/entities/${entityName}/properties/add`,
+      { name, type, nullable });
+    setAddingProp(null);
+    if (data.error) showToast(`✕ ${data.error}`);
+    else {
+      setAddPropForm({ name: "", type: "string", nullable: false });
+      showToast(`✓ Added ${name} to ${entityName}`);
+    }
+  }
+
+  // ── DELETE PROPERTY (two-way sync) ──
+  async function deleteProperty(entityName, propName) {
+    if (!confirm(`Remove property ${propName} from ${entityName}?\nThis will modify the .cs file.`)) return;
+    const data = await api("DELETE", `/entities/${entityName}/properties/${propName}`);
+    if (data.error) showToast(`✕ ${data.error}`);
+  }
+
+  // ── LIVE SERVERS ──
+  async function toggleServer(entityName) {
+    if (spinningServer) return;
+    setSpinningServer(entityName);
+    if (liveServers[entityName]) {
+      await api("POST", `/servers/${entityName}/stop`);
+    } else {
+      await api("POST", `/servers/${entityName}/start`);
+    }
+    setSpinningServer(null);
+  }
+
+  // ── INFRA GENERATION ──
+  async function doGenerate() {
+    if (infraSelected.size === 0) return;
+    setGenerating(true);
+    const data = await api("POST", "/infra/generate", {
+      entities: [...infraSelected],
+      pattern: infraPattern,
+      db_provider: infraDb,
+    });
+    setGenerating(false);
+    if (data.error) { showToast(`✕ ${data.error}`); return; }
+    setInfraFiles(data.files || []);
+    setInfraTab(0);
+    showToast(`✓ Generated ${data.files?.length} files · ${data.pattern}`);
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard?.writeText(text).then(() => showToast("[OK] Copied"))
+      .catch(() => showToast("[X] Copy failed"));
+  }
+
+  function downloadFile(filename, content) {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadAllZip() {
+    const a = document.createElement("a");
+    a.href = API + "/infra/download-zip";
+    a.download = "csforge_infra.zip";
+    a.click();
+  }
+
+  const activeEntity = entities.find(e => e.name === selectedEntity);
+
+  // ── RENDER: NO BACKEND ──
+  if (!backendOnline) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 20 }}>
+        <div style={{ fontSize: 48, opacity: .3 }}>⚡</div>
+        <div style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 800 }}>CSForge</div>
+        <div style={{ color: "var(--text3)", fontSize: 13 }}>Waiting for backend on <span style={{ color: "var(--accent)" }}>localhost:7847</span></div>
+        <div style={{ color: "var(--text3)", fontSize: 11, maxWidth: 400, textAlign: "center", lineHeight: 1.7 }}>
+          Run the backend with:<br />
+          <code style={{ color: "var(--accent4)" }}>cd backend && python app.py</code>
+        </div>
+        <div style={{ fontSize: 11, color: "var(--text3)" }} className="loading-dots">Connecting</div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="app">
+        {/* TOPBAR */}
+        <header className="topbar">
+          <div className="logo">
+            <div className="logo-dot" />
+            C<span>#</span>Forge
+          </div>
+          <div style={{ display: "flex", gap: 2, marginLeft: 16 }}>
+            {[["models","Models"],["live","Live Servers"],["infra","Infra Generator"]].map(([id,label]) => (
+              <button key={id} className={`tab-btn ${tab === id ? "active" : ""}`} onClick={() => setTab(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="topbar-right">
+            <span className={`status-pill ${backendOnline ? "online" : "offline"}`}>
+              <span className={`pulse ${backendOnline ? "animate" : ""}`} />
+              {backendOnline ? "Backend Connected" : "Offline"}
+            </span>
+            {Object.keys(liveServers).length > 0 && (
+              <span className="badge live-badge">
+                <span className="pulse animate" />
+                {Object.keys(liveServers).length} server{Object.keys(liveServers).length !== 1 ? "s" : ""} running
+              </span>
+            )}
+          </div>
+        </header>
+
+        {/* SIDEBAR */}
+        <aside className="sidebar">
+          <div className="sb-section">
+            <div className="path-row">
+              <input
+                className="path-input"
+                placeholder="C:\Projects\MyApi"
+                value={projectPath}
+                onChange={e => setProjectPath(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && doScan()}
+              />
+              <button className="browse-btn" onClick={doBrowse} title="Browse for folder">...</button>
+            </div>
+            <button
+              className={`scan-btn ${scanning ? "loading" : ""}`}
+              onClick={doScan}
+              disabled={scanning}
+            >
+              {scanning ? "Scanning..." : "Scan Project"}
+            </button>
+          </div>
+
+          <div className="sb-label">Entities ({entities.length})</div>
+          <div className="entity-tree">
+            {entities.map(e => (
+              <div
+                key={e.name}
+                className={`entity-item ${selectedEntity === e.name ? "active" : ""}`}
+                onClick={() => { setSelectedEntity(e.name); loadRows(e.name); }}
+              >
+                <div className="entity-dot" />
+                <span>{e.name}</span>
+                <span style={{ fontSize: 10, color: "var(--text3)", marginLeft: "auto" }}>
+                  {e.properties?.length}p
+                </span>
+                {liveServers[e.name] && <div className="entity-live-dot" />}
+                <button
+                  className="entity-remove"
+                  title={`Remove ${e.name}`}
+                  onClick={ev => { ev.stopPropagation(); removeEntity(e.name); }}
+                >x</button>
+              </div>
+            ))}
+            {entities.length === 0 && (
+              <div style={{ padding: "16px 14px", fontSize: 11, color: "var(--text3)" }}>
+                Scan a C# project to load entities
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* MAIN */}
+        <main className="main">
+          <div className="panel">
+
+            {/* ── MODELS TAB ── */}
+            {tab === "models" && (
+              <>
+                <div className="panel-title">Model Explorer</div>
+                <div className="panel-sub">
+                  {entities.length} entities · Two-way sync enabled — edits write back to .cs files
+                </div>
+
+                {(activeEntity ? [activeEntity] : entities).map(entity => {
+                  const entityRows = rows[entity.name] || [];
+                  const isExpanded = expandedTables.has(entity.name);
+                  const server = liveServers[entity.name];
+
+                  return (
+                    <div key={entity.name} className="model-card">
+                      {/* Header */}
+                      <div className="mc-header">
+                        <span className="db-badge">entity</span>
+                        <span className="mc-name">{entity.name}</span>
+                        <span className="mc-file">{entity.namespace}</span>
+                        <span className="badge db-badge" style={{ marginLeft: 4 }}>
+                          🗄 {entityRows.length} rows
+                        </span>
+                        {server && <span className="badge live-badge">● :{server.port}</span>}
+                        <div className="mc-actions">
+                          <button className="btn btn-amber" onClick={() => {
+                            api("POST", `/entities/${entity.name}/reseed`);
+                          }}>↺ Reseed</button>
+                          <button className="btn btn-green" onClick={() => {
+                            setTab("live"); toggleServer(entity.name);
+                          }}>▶ Spin Up</button>
+                          <button className="btn btn-purple" onClick={() => {
+                            setInfraSelected(new Set([entity.name]));
+                            setTab("infra");
+                          }}>⬡ Infra</button>
+                        </div>
+                      </div>
+
+                      {/* Properties table with two-way sync */}
+                      <div style={{ overflowX: "auto" }}>
+                        <table className="props-table">
+                          <thead>
+                            <tr>
+                              <th>Property Name</th>
+                              <th>Type</th>
+                              <th>Nullable</th>
+                              <th style={{ width: 60 }}></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {entity.properties?.map(prop => {
+                              const renameKey = `${entity.name}.${prop.name}`;
+                              const isSaving = savingProp === renameKey;
+                              const pendingName = pendingRenames[renameKey];
+
+                              return (
+                                <tr key={prop.name} className={isSaving ? "prop-saving" : ""}>
+                                  <td>
+                                    <div className="prop-name-cell">
+                                    <input
+                                      className="editable-name"
+                                      defaultValue={prop.name}
+                                      key={prop.name}
+                                      onFocus={e => {
+                                        setPendingRenames(p => ({ ...p, [renameKey]: e.target.value }));
+                                      }}
+                                      onChange={e => {
+                                        setPendingRenames(p => ({ ...p, [renameKey]: e.target.value }));
+                                      }}
+                                      onBlur={e => submitRename(entity.name, prop.name, e.target.value)}
+                                      onKeyDown={e => {
+                                        if (e.key === "Enter") e.target.blur();
+                                        if (e.key === "Escape") {
+                                          e.target.value = prop.name;
+                                          e.target.blur();
+                                        }
+                                      }}
+                                      disabled={isSaving}
+                                      title="Click to rename — writes back to .cs file"
+                                    />
+                                    {isSaving && <span className="prop-saving-dot" />}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <select
+                                      className="mini-select"
+                                      value={prop.type}
+                                      onChange={e => changeType(entity.name, prop.name, e.target.value, prop.nullable)}
+                                      style={{ fontSize: 11, padding: "2px 6px" }}
+                                      disabled={!!savingProp}
+                                    >
+                                      {CS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                  </td>
+                                  <td>
+                                    <button
+                                      className={`null-toggle ${prop.nullable ? "nullable" : "required"}`}
+                                      onClick={() => toggleNullable(entity.name, prop.name, prop.nullable)}
+                                      disabled={!!savingProp}
+                                      title="Toggle nullable — writes ? to .cs file"
+                                    >
+                                      {prop.nullable ? "null" : "req"}
+                                    </button>
+                                  </td>
+                                  <td>
+                                    {prop.name !== "Id" && (
+                                      <button
+                                        className="btn btn-red"
+                                        style={{ fontSize: 10, padding: "3px 8px" }}
+                                        onClick={() => deleteProperty(entity.name, prop.name)}
+                                        disabled={!!savingProp}
+                                        title="Remove from .cs file"
+                                      >✕</button>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Add property form */}
+                      <div className="add-prop-form">
+                        <span style={{ fontSize: 10, color: "var(--text3)" }}>+ Add property:</span>
+                        <input
+                          className="mini-input"
+                          placeholder="PropertyName"
+                          value={addPropForm.name}
+                          onChange={e => setAddPropForm(p => ({ ...p, name: e.target.value }))}
+                          onKeyDown={e => e.key === "Enter" && addProperty(entity.name)}
+                          style={{ width: 130 }}
+                        />
+                        <select
+                          className="mini-select"
+                          value={addPropForm.type}
+                          onChange={e => setAddPropForm(p => ({ ...p, type: e.target.value }))}
+                        >
+                          {CS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text2)", cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={addPropForm.nullable}
+                            onChange={e => setAddPropForm(p => ({ ...p, nullable: e.target.checked }))}
+                            style={{ accentColor: "var(--accent4)" }}
+                          />
+                          nullable
+                        </label>
+                        <button
+                          className="btn btn-blue"
+                          onClick={() => addProperty(entity.name)}
+                          disabled={!addPropForm.name || addingProp === entity.name}
+                        >
+                          {addingProp === entity.name ? "Adding..." : "+ Add"}
+                        </button>
+                      </div>
+
+                      {/* Collapsible SQLite data table */}
+                      <div className="data-section">
+                        <div
+                          className="data-toggle"
+                          onClick={() => setExpandedTables(p => {
+                            const n = new Set(p);
+                            n.has(entity.name) ? n.delete(entity.name) : n.add(entity.name);
+                            return n;
+                          })}
+                        >
+                          <span className={`chevron ${isExpanded ? "open" : ""}`}>▶</span>
+                          <strong style={{ color: "var(--text2)", fontFamily: "var(--display)", fontWeight: 700, fontSize: 11 }}>SQLite</strong>
+                          <span style={{ color: "var(--border2)" }}>|</span>
+                          <span>SELECT * FROM {entity.name}s</span>
+                          <span style={{ color: "var(--accent3)", fontSize: 10, marginLeft: 4 }}>{entityRows.length} rows</span>
+                          {server && (
+                            <span className="badge live-badge" style={{ marginLeft: 8 }}>
+                              Serving live :{server.port}
+                            </span>
+                          )}
+                          <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text3)" }}>
+                            {isExpanded ? "collapse" : "expand"}
+                          </span>
+                        </div>
+                        <div className={`data-body ${isExpanded ? "expanded" : "collapsed"}`}>
+                          <div className="data-inner">
+                            {entityRows.length > 0 ? (
+                              <>
+                                <div className="data-table-wrap">
+                                  <table className="data-table">
+                                    <thead>
+                                      <tr>{entity.properties?.map(p => <th key={p.name}>{p.name}</th>)}</tr>
+                                    </thead>
+                                    <tbody>
+                                      {entityRows.map((row, i) => (
+                                        <tr key={i}>
+                                          {entity.properties?.map(p => (
+                                            <td key={p.name} title={String(row[p.name] ?? "")}>
+                                              {String(row[p.name] ?? "null")}
+                                            </td>
+                                          ))}
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                                <div className="query-bar">
+                                  <span className="qsql">SELECT * FROM {entity.name}s LIMIT 15;</span>
+                                  <span className="qrows">↳ {entityRows.length} rows</span>
+                                </div>
+                              </>
+                            ) : (
+                              <div style={{ padding: 16, color: "var(--text3)", fontSize: 11 }}>No rows — click ↺ Reseed</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {entities.length === 0 && (
+                  <div className="empty">
+                    <div className="empty-icon">📂</div>
+                    <div>Scan a C# project to get started</div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ── LIVE SERVERS TAB ── */}
+            {tab === "live" && (
+              <>
+                <div className="panel-title">Live Endpoints</div>
+                <div className="panel-sub">
+                  Real HTTP servers serving from SQLite — call from Postman, curl, or your frontend
+                </div>
+
+                {entities.map(entity => {
+                  const server = liveServers[entity.name];
+                  const isSpinning = spinningServer === entity.name;
+                  const entityRows = rows[entity.name] || [];
+                  const previewRows = entityRows.slice(0, 3);
+                  const plural = entity.name.toLowerCase() + "s";
+
+                  const endpoints = [
+                    { method: "GET", path: `/api/${plural}`, desc: `Get all ${plural}` },
+                    { method: "GET", path: `/api/${plural}/{id}`, desc: `Get by ID` },
+                    { method: "POST", path: `/api/${plural}`, desc: `Create` },
+                    { method: "PUT", path: `/api/${plural}/{id}`, desc: `Update` },
+                    { method: "DELETE", path: `/api/${plural}/{id}`, desc: `Delete` },
+                  ];
+
+                  return (
+                    <div key={entity.name} className={`server-card ${server ? "running" : ""}`}>
+                      <div className="sc-header">
+                        <span className="sc-name">{entity.name}</span>
+                        <span className={`server-badge ${server ? "running" : "stopped"}`}>
+                          <span className="pulse animate" style={{ display: server ? undefined : "none" }} />
+                          {server ? `Running · port ${server.port}` : "Stopped"}
+                        </span>
+                        {server && <span className="badge">{new Date().toLocaleTimeString()}</span>}
+                        {server && <span className="badge db-badge">🗄 {entityRows.length} records</span>}
+                        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                          <button
+                            className={`spin-btn ${server ? "stop" : "start"}`}
+                            onClick={() => toggleServer(entity.name)}
+                            disabled={!!spinningServer}
+                          >
+                            <span className={`spin-icon ${isSpinning ? "spinning" : ""}`}>
+                              {isSpinning ? "⟳" : server ? "■" : "▶"}
+                            </span>
+                            {isSpinning ? "Starting..." : server ? "Stop Server" : "Start Server"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {server && (
+                        <>
+                          <div className="url-row">
+                            <span className="url-scheme">http</span>://
+                            <span className="url-host">localhost:{server.port}</span>
+                            <span className="url-path">/api/{plural}</span>
+                            <button className="copy-btn" onClick={() => copyToClipboard(`http://localhost:${server.port}/api/${plural}`)}>⎘</button>
+                          </div>
+                          <div className="url-row" style={{ marginBottom: 12 }}>
+                            <span className="url-scheme">http</span>://
+                            <span className="url-host">localhost:{server.port}</span>
+                            <span className="url-path">/swagger</span>
+                            <button className="copy-btn" onClick={() => copyToClipboard(`http://localhost:${server.port}/swagger`)}>⎘</button>
+                          </div>
+
+                          {endpoints.map((ep, i) => (
+                            <div key={i} className="ep-row">
+                              <span className={`method ${ep.method}`}>{ep.method}</span>
+                              <span className="ep-url">localhost:{server.port}{ep.path}</span>
+                              <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text3)" }}>{ep.desc}</span>
+                              <button className="copy-btn" onClick={() => copyToClipboard(`http://localhost:${server.port}${ep.path}`)}>⎘</button>
+                            </div>
+                          ))}
+
+                          {previewRows.length > 0 && (
+                            <div className="live-response">
+                              <div className="lr-header">
+                                <span className="lr-dot" />
+                                <span>GET /api/{plural} → SQLite response preview</span>
+                                <span className="lr-status">200 OK · {entityRows.length} records</span>
+                              </div>
+                              <div className="lr-body">
+                                <pre>{JSON.stringify(previewRows, null, 2)}{entityRows.length > 3 ? `\n// ... ${entityRows.length - 3} more records` : ""}</pre>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            {/* ── INFRA GENERATOR TAB ── */}
+            {tab === "infra" && (
+              <>
+                <div className="panel-title">Infrastructure Generator</div>
+                <div className="panel-sub">
+                  Select a pattern, pick entities, generate production-ready C#
+                </div>
+
+                <div className="section-title">Database Provider</div>
+                <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+                  {[
+                    { id: "sqlite",    label: "SQLite",      desc: "File-based · zero config",           color: "#00d4ff" },
+                    { id: "sqlserver", label: "SQL Server",  desc: "Microsoft · EF Core",                color: "#7c3aed" },
+                    { id: "postgres",  label: "PostgreSQL",  desc: "Open source · Npgsql",               color: "#10b981" },
+                    { id: "mongo",     label: "MongoDB",     desc: "Document store · MongoDB.Driver",    color: "#f59e0b" },
+                  ].map(db => (
+                    <div
+                      key={db.id}
+                      onClick={() => { setInfraDb(db.id); setInfraFiles([]); }}
+                      style={{
+                        flex: "1 1 140px",
+                        padding: "10px 14px",
+                        borderRadius: 6,
+                        border: `1px solid ${infraDb === db.id ? db.color : "var(--border)"}`,
+                        background: infraDb === db.id ? `${db.color}12` : "var(--surface)",
+                        cursor: "pointer",
+                        transition: "all .15s",
+                      }}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: 700, color: infraDb === db.id ? db.color : "var(--text)", fontFamily: "var(--display)" }}>{db.label}</div>
+                      <div style={{ fontSize: 10, color: "var(--text3)", marginTop: 3 }}>{db.desc}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="section-title">Architecture Pattern</div>
+                <div className="pattern-grid">
+                  {PATTERNS.map(p => (
+                    <div
+                      key={p.id}
+                      className={`pattern-card ${infraPattern === p.id ? "active" : ""}`}
+                      style={{ "--pc": p.color }}
+                      onClick={() => { setInfraPattern(p.id); setInfraFiles([]); }}
+                    >
+                      <div className="p-name" style={{ color: infraPattern === p.id ? p.color : "var(--text)" }}>
+                        {p.name}
+                      </div>
+                      <div className="p-files">{p.files}</div>
+                      <div className="p-desc">{p.desc}</div>
+                      <span className="p-tag" style={{ background: p.tagBg, color: p.tagColor }}>{p.tag}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="section-title">Select Entities</div>
+                <div className="infra-models">
+                  {entities.map(e => (
+                    <div
+                      key={e.name}
+                      className={`im-card ${infraSelected.has(e.name) ? "sel" : ""}`}
+                      onClick={() => setInfraSelected(p => {
+                        const n = new Set(p); n.has(e.name) ? n.delete(e.name) : n.add(e.name); return n;
+                      })}
+                    >
+                      <div className="im-check">{infraSelected.has(e.name) ? "✓" : ""}</div>
+                      <div className="im-name">{e.name}</div>
+                      <div className="im-ns">{e.namespace}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                  <button
+                    className="gen-btn"
+                    onClick={doGenerate}
+                    disabled={generating || infraSelected.size === 0}
+                  >
+                    {generating
+                      ? "[~] Generating..."
+                      : `Generate · ${PATTERNS.find(p => p.id === infraPattern)?.name} · ${infraSelected.size} entity${infraSelected.size !== 1 ? "s" : ""}`}
+                  </button>
+                  {infraFiles.length > 0 && (
+                    <button
+                      className="btn btn-blue"
+                      onClick={downloadAllZip}
+                      title="Download all files as ZIP"
+                    >
+                      Download ZIP
+                    </button>
+                  )}
+                  {infraSelected.size === 0 && (
+                    <span style={{ fontSize: 11, color: "var(--text3)" }}>Select at least one entity</span>
+                  )}
+                </div>
+
+                {infraFiles.length > 0 && (
+                  <div className="code-output">
+                    <div className="code-tabs">
+                      {infraFiles.map((f, i) => (
+                        <div
+                          key={i}
+                          className={`code-tab ${infraTab === i ? "active" : ""}`}
+                          onClick={() => setInfraTab(i)}
+                          title={f.path}
+                        >
+                          {f.label}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="code-block">
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "6px 12px", borderBottom: "1px solid var(--border)" }}>
+                        <button
+                          className="btn btn-blue"
+                          style={{ fontSize: 10 }}
+                          onClick={() => copyToClipboard(infraFiles[infraTab]?.code)}
+                        >Copy</button>
+                        <button
+                          className="btn btn-blue"
+                          style={{ fontSize: 10 }}
+                          onClick={() => downloadFile(infraFiles[infraTab]?.label, infraFiles[infraTab]?.code)}
+                        >Download file</button>
+                      </div>
+                      <pre>{infraFiles[infraTab]?.code}</pre>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+          </div>
+
+          {/* WATCHER BAR */}
+          <div className="watcher-bar">
+            <span className="w-active">
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor", boxShadow: "0 0 5px currentColor" }} />
+              File Watcher Active
+            </span>
+            <span>·</span>
+            <span>{activeEntity?.file_path?.replace(/\\/g, "/").split("/").slice(-3).join("/") || "No project loaded"}</span>
+            <div className="w-changes">
+              {watchLog.slice(0, 4).map((w, i) => (
+                <span key={i} className="w-entry">
+                  {w.file} ({w.event})
+                </span>
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {toast && <div className="toast">{toast}</div>}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
