@@ -36,6 +36,8 @@ Opens automatically at `http://localhost:7848`.
 ## Features
 
 ### 🔍 Models Tab
+<img width="1654" height="489" alt="image" src="https://github.com/user-attachments/assets/7aef583d-4ca5-4d5c-b71d-28b4d690095e" />
+
 - Scans any C# project folder recursively for entity classes
 - Displays all properties with type, nullability, and required status
 - **Two-way sync** — rename a property, change its type, or toggle nullable in the UI and the `.cs` file updates on disk immediately
@@ -44,6 +46,8 @@ Opens automatically at `http://localhost:7848`.
 - Collapsible SQLite data table with 15 auto-seeded rows per entity
 
 ### ⚡ Live Servers Tab
+<img width="1653" height="869" alt="image" src="https://github.com/user-attachments/assets/7fdf4455-bf0f-4235-8ae0-4f5eddbf64c0" />
+
 - Spin up a real HTTP REST server per entity with one click
 - Each server gets its own port (starting at 5100)
 - Full CRUD: `GET`, `POST`, `PUT`, `DELETE`
@@ -53,6 +57,8 @@ Opens automatically at `http://localhost:7848`.
 - Live response preview built into the UI
 
 ### 🏗️ Infrastructure Generator Tab
+<img width="1652" height="589" alt="image" src="https://github.com/user-attachments/assets/2bf5ab9a-a067-4ee7-a889-42eaa6f471c7" />
+
 | Pattern | Generated files |
 |---|---|
 | **Repository** | Interface + Repository + Service + Controller + DbContext + DI wiring |
@@ -62,6 +68,7 @@ Opens automatically at `http://localhost:7848`.
 
 Supports SQLite, SQL Server, PostgreSQL, and MongoDB targets.
 Download the entire generated structure as a `.zip`.
+<img width="1641" height="580" alt="image" src="https://github.com/user-attachments/assets/042da6ef-6d22-45ed-9f0c-2d964e22decb" />
 
 ### 👁️ File Watcher
 - Watches the project directory for any `.cs` file saves
