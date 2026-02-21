@@ -7,6 +7,8 @@ syntax tree, seeds SQLite databases with mock data, spins up live REST servers p
 entity, and lets you edit your model directly in the UI — every change writes back
 to the `.cs` file on disk instantly.
 
+<img width="1910" height="943" alt="image" src="https://github.com/user-attachments/assets/25dc14df-204b-49d1-a39e-ec0b9ce18a89" />
+
 ---
 
 ## Demo
