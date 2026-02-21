@@ -9,30 +9,6 @@ to the `.cs` file on disk instantly.
 
 <img width="1910" height="943" alt="image" src="https://github.com/user-attachments/assets/25dc14df-204b-49d1-a39e-ec0b9ce18a89" />
 
----
-
-## Demo
-
-> Point CSForge at `sample_project/` right after cloning to see it in action immediately.
-
----
-
-## Quick Start
-
-**Requirements:** Python 3.10+
-
-```bash
-# 1. Install dependencies
-pip install flask watchdog tree-sitter tree-sitter-languages
-
-# 2. Run
-python start.py
-```
-
-Opens automatically at `http://localhost:7848`.
-
----
-
 ## Features
 
 ### 🔍 Models Tab
@@ -92,6 +68,25 @@ target exact byte ranges in the file rather than pattern-matching text.
 | Delete property | Property line (+ XML doc + attributes) removed |
 
 ---
+
+---
+
+## Quick Start
+
+**Requirements:** Python 3.10+
+
+```bash
+# 1. Install dependencies
+pip install flask watchdog tree-sitter tree-sitter-languages
+
+# 2. Run
+python start.py
+```
+
+Opens automatically at `http://localhost:7848`.
+
+---
+
 
 ## Project Structure
 
