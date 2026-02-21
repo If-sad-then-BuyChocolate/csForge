@@ -179,6 +179,10 @@ GET    /api/events                              SSE stream for real-time updates
 
 ---
 
+## Future Features:
+
+- Adding MCP, so your agents can provide a list of Raw C# Models and get back the generated Infrastructure on the fly.
+
 ## License
 
 MIT
